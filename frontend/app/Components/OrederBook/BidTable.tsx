@@ -17,6 +17,7 @@ const BidTable = ({ bids }: { bids: [string, string][] }) => {
 
 const Bid = ({ price, size, total }: { price: string; size: string; total: string }) => {
     return (
+        
         <div className="flex flex-row justify-between items-center h-[23px] mx-3">
             <div className="flex h-full w-[30%] items-center text-xs font-normal tabular-nums text-[#00c278e6]/90">
                 {price}
