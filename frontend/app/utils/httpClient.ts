@@ -25,3 +25,9 @@ export async function getTrades(market: string, limit: string): Promise<Trade[]>
     const response = await axios.get(`${BASE_URL}/trades?symbol=${market}&limit=${limit}`);
     return response.data;
 }
+
+export async function getTicker(market: string): Promise<Ticker | undefined> {
+    const tickers = await getTickers();
+    const ticker = tickers.find(t => t.symbol === market);
+    return ticker;
+}
