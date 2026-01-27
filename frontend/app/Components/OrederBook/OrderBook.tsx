@@ -22,7 +22,7 @@ const OrderBook = ({ market }: { market: string }) => {
 
     return (
         <div className="flex flex-col ">
-            <div className="h-[42px] py-3 pl-6 text-[#EAECEF] font-bold">
+            <div className="h-[42px] py-3 mx-3 text-[#EAECEF] font-bold">
                 OderBook
             </div>
             <hr className="text-[#424755]" />

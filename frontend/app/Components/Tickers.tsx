@@ -13,7 +13,7 @@ const Tickers = () => {
                 return parseFloat(b.lastPrice) - parseFloat(a.lastPrice);
             });
             const Tickers = sortedTickers.filter(ticker => !ticker.symbol.includes("PERP"));
-            const finalTickers = Tickers.slice(0,15);
+            const finalTickers = Tickers.slice(0,14);
             setTicker(finalTickers);
         }
         tickers();
@@ -21,7 +21,7 @@ const Tickers = () => {
 
     return (
         <div className="flex flex-col ">
-            <div className="h-[42px] py-3 mx-2 text-[#EAECEF] font-bold">
+            <div className="h-[42px] py-3 mx-3 text-[#EAECEF] font-bold">
                 Coins
             </div>
             <hr className="text-[#424755]" />
@@ -53,8 +53,8 @@ const TableHeader = () => {
 const Bid = ({ symbol, lastPrice, priceChange}: { symbol: string; lastPrice: string; priceChange: string;}) => {
     return (
 
-        <div className="flex flex-row justify-between items-center h-[23px] mx-3">
-            <div className={`flex h-full w-[20%] items-center text-xs font-normal tabular-nums text-white`}>
+        <div className="flex flex-row justify-between items-center h-[24px] mx-3">
+            <div className={`flex h-full w-[20%] items-center text-xs font-normal tabular-nums text-[#848E9C] font-semibold`}>
                 {symbol}
             </div>
             <div className="flex h-full w-[35%] items-center justify-end text-xs font-normal tabular-nums text-white">

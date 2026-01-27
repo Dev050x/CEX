@@ -41,7 +41,7 @@ const page = () => {
                 <div className="h-[419px] bg-[#181a20] rounded-[8px]">
                   <Tickers />
                 </div>
-                <div className="h-[470px] bg-[#181a20] rounded-[8px]">
+                <div className="h-[480px] bg-[#181a20] rounded-[8px]">
                   <Trades market={market as string}/>
                 </div>
               </div>

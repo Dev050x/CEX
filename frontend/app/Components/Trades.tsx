@@ -15,7 +15,7 @@ const Trades = ({ market }: { market: string }) => {
 
     return (
         <div className="flex flex-col ">
-            <div className="h-[42px] py-3 pl-6 text-[#EAECEF] font-bold">
+            <div className="h-[42px] py-3 mx-3 text-[#EAECEF] font-bold">
                 Market Trades
             </div>
             <hr className="text-[#424755]" />
@@ -23,7 +23,13 @@ const Trades = ({ market }: { market: string }) => {
             <>
                 {
                     trades && trades.map((trade, index) =>
-                        <Bid price={trade.price} size={trade.quantity} time={trade.timestamp.toString()} color={trade.isBuyerMaker ? "[#00c278e6]" : "[#F6465D]"} key={index} />
+                        <Bid 
+                            price={trade.price} 
+                            size={trade.quantity} 
+                            timestamp={trade.timestamp} 
+                            color={trade.isBuyerMaker ? "#2EBD85" : "#F6465D"} 
+                            key={index} 
+                        />
                     )
                 }
             </>
@@ -44,18 +50,29 @@ const TableHeader = () => {
 }
 
 
-const Bid = ({ price, size, time, color }: { price: string; size: string; time: string; color: string }) => {
+const Bid = ({ price, size, timestamp, color }: { price: string; size: string; timestamp: number; color: string }) => {
+    const formatTime = (timestamp: number) => {
+        const date = new Date(timestamp);
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const seconds = date.getSeconds().toString().padStart(2, '0');
+        return `${hours}:${minutes}:${seconds}`;
+    };
+
     return (
 
         <div className="flex flex-row justify-between items-center h-[23px] mx-3">
-            <div className={`flex h-full w-[20%] items-center text-xs font-normal tabular-nums text-${color}/90`}>
+            <div 
+                className="flex h-full w-[20%] items-center text-xs font-normal tabular-nums"
+                style={{ color: color }}
+            >
                 {price}
             </div>
             <div className="flex h-full w-[35%] items-center justify-end text-xs font-normal tabular-nums text-[#EAECEF]/80">
                 {size}
             </div>
             <div className="flex h-full w-[35%] items-center justify-end text-xs font-normal tabular-nums text-[#EAECEF]/80">
-                {time}
+                {formatTime(timestamp)}
             </div>
         </div>
     )
