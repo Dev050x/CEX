@@ -3,6 +3,7 @@ import Header from "@/app/Components/Header";
 import MarketBar from "@/app/Components/MarketBar";
 import OrderBook from "@/app/Components/OrederBook/OrderBook";
 import Swap from "@/app/Components/SwapUi/Swap";
+import Trades from "@/app/Components/Trades";
 import TradeView from "@/app/Components/TradeView";
 import { useParams } from "next/navigation";
 
@@ -15,7 +16,7 @@ const page = () => {
         <Header />
       </div>
       <div className="bg-[#0B0E11] text-high-emphasis flex flex-1 flex-col justify-between overflow-auto mx-25">
-            <div className="flex flex-row h-full w-full flex-1 gap-2 px-4">
+            <div className="flex flex-row h-full w-full flex-1 gap-1 px-4">
               <div className="flex flex-col flex-1 gap-1">
                 <div className="bg-[#181a20] rounded-[8px]">
                   <MarketBar market={market as string}/>
@@ -35,9 +36,11 @@ const page = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col w-[380px] border">
-                <div className="border h-[419px]">Coins</div>
-                <div className="border flex-1">Recent Trades</div>
+              <div className="flex flex-col w-[380px] gap-1">
+                <div className="h-[419px] bg-[#181a20] rounded-[8px]">Coins</div>
+                <div className="h-[470px] bg-[#181a20] rounded-[8px]">
+                  <Trades market={market as string}/>
+                </div>
               </div>
             </div>
       </div>
