@@ -8,9 +8,7 @@ const Trades = ({ market }: { market: string }) => {
     useEffect(() => {
         const trades = async () => {
             const trades = await getTrades(market, "17");
-            console.log("trades: ", trades);
             setTrades(trade => trades);
-            return trades;
         }
         trades();
     }, [market]);

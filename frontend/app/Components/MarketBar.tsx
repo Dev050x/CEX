@@ -9,7 +9,6 @@ const MarketBar = ({ market }: { market: string }) => {
         const fetchTicker = async () => {
             const t = await getTicker(market);
             setTicker(t);
-            console.log("Ticker data:", t)
         };
         fetchTicker();
 
@@ -109,15 +108,3 @@ const MarketBar = ({ market }: { market: string }) => {
 export default MarketBar
 
 
-// {
-//     "firstPrice": "122.31",
-//     "high": "125.1",
-//     "lastPrice": "123.96",
-//     "low": "117.15",
-//     "priceChange": "1.65",
-//     "priceChangePercent": "0.01349",
-//     "quoteVolume": "12834707.0178",
-//     "symbol": "SOL_USDC",
-//     "trades": "37916",
-//     "volume": "105987.04"
-// }

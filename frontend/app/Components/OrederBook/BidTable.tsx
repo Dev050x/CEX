@@ -1,6 +1,5 @@
 const BidTable = ({ bids }: { bids: [string, string][] }) => {
     let currentTotal = 0;
-    console.log("bids are: ", bids);
     let relavantBids = bids.slice(0, 15);
     let bidWithTotal: [string, string, number][] = [];
     relavantBids.map(([price, size]) => {

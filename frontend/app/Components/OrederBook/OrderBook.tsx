@@ -13,7 +13,6 @@ const OrderBook = ({ market }: { market: string }) => {
             const depth = await getDepth(market);
             setAsks(depth.asks);
             setBids(depth.bids.reverse());
-            console.log("ask is: ", depth.asks);
             const ticker = await getTicker(market);
             const lastPrice = ticker?.lastPrice;
             setLastPrice(lastPrice || null);
