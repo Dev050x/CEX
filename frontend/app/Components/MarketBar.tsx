@@ -16,7 +16,7 @@ const MarketBar = ({ market }: { market: string }) => {
 
     return (
         <div className="flex items-center flex-row bg-base-background-l1 relative w-full rounded-lg">
-            <div className="flex items-center flex-row no-scrollbar mr-4 ml-4 h-[72px] w-full overflow-auto">
+            <div className="flex items-center flex-row no-scrollbar mr-4 ml-4 h-[65px] w-full overflow-auto">
                 <div className="flex justify-between flex-row w-full gap-4">
                     <div className="flex flex-row shrink-0 gap-6">
                         <div className="flex flex-row gap-2">

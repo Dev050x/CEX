@@ -19,7 +19,7 @@ const page = () => {
       <div className="bg-[#0B0E11] text-high-emphasis flex flex-1 flex-col justify-between overflow-auto mx-25">
             <div className="flex flex-row h-full w-full flex-1 gap-1 px-4">
               <div className="flex flex-col flex-1 gap-1">
-                <div className="bg-[#181a20] rounded-[8px]">
+                <div className="bg-[#181a20] rounded-[8px] ">
                   <MarketBar market={market as string}/>
                 </div>
                 <div className="flex flex-row flex-1 gap-1">

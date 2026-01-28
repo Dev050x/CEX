@@ -60,7 +60,7 @@ const Bid = ({ symbol, lastPrice, priceChange}: { symbol: string; lastPrice: str
             <div className="flex h-full w-[35%] items-center justify-end text-xs font-normal tabular-nums text-white">
                 {lastPrice}
             </div>
-            <div className={`flex h-full w-[35%] items-center justify-end text-xs font-normal tabular-nums ${parseFloat(priceChange) < 0 ? 'text-[#2EBD85]' : 'text-[#F6465D]' }`}>
+            <div className={`flex h-full w-[35%] items-center justify-end text-xs font-normal tabular-nums ${parseFloat(priceChange) < 0 ? 'text-[#F6465D]' : 'text-[#2EBD85]' }`}>
                 {(parseFloat(priceChange) * 100).toFixed(2)}%
             </div>
         </div>
