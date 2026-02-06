@@ -2,7 +2,6 @@ import { Router } from "express";
 import { RedisManager } from "../RedisMananger.js";
 import { CREATE_ORDER } from "../types/index.js";
 
-
 export const orderRouter = Router();
 
 orderRouter.post("/", async (req, res) => {
