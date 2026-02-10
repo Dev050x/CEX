@@ -140,6 +140,16 @@ export class Orderbook {
         };
     }
 
+    getSnapshot() {
+        return {
+            baseAsset: this.baseAsset,
+            bids: this.bids,
+            asks: this.asks,
+            lastTradeId: this.lastTradeId,
+            currentPrice: this.currentPrice
+        }
+    }
+    
     getDepth() {
         const bids: [string, string][] = [];
         const asks: [string, string][] = [];

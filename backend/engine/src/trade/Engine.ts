@@ -1,3 +1,4 @@
+import fs from "fs";
 import { RedisManager } from "../RedisManager.js";
 import { CANCEL_ORDER, CREATE_ORDER, GET_DEPTH, GET_OPEN_ORDERS, type MessageFromApi } from "../types/fromApi.js";
 import { ORDER_UPDATE, TRADE_ADDED } from "../types/index.js";
