@@ -8,8 +8,8 @@ import {
   pingRedis,
 } from "./utils/engine-client.js";
 
-await connectRedis();
-void listenForEngineResponses();
+// await connectRedis();
+// void listenForEngineResponses();
 
 const app = express();
 
@@ -33,4 +33,4 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 app.listen(env.port, () => {
   console.log(`Backend running on http://localhost:${env.port}`);
   console.log(`Response queue: ${env.responseQueue}`);
-});
+}); 

@@ -5,6 +5,7 @@ import { authSchema } from "../types/auth-schema.js";
 import { createToken } from "../utils/auth.js";
 import { sendValidationError } from "../utils/validation.js";
 
+
 export async function signup(req: Request, res: Response): Promise<void> {
   const parsedBody = authSchema.safeParse(req.body);
   if (!parsedBody.success) {
@@ -34,5 +35,36 @@ export async function signup(req: Request, res: Response): Promise<void> {
 }
 
 export async function signin(req: Request, res: Response): Promise<void> {
-  //TODO: Implement signin logic
+  const parsedBody = authSchema.safeParse(req.body);
+  if (!parsedBody.success) {
+    sendValidationError(res, parsedBody.error);
+    return;
+  }
+
+  const { username, password } = parsedBody.data;
+
+  const user = await prisma.user.findUnique({
+    where: {
+      username: username,
+    }
+  });
+
+  if (!user) {
+    res.status(409).json({ error: "user does not exists" });
+    return;
+  }
+
+  const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordCorrect) {
+    res.status(409).json({ error: "password is not correct" });
+    return;
+  }
+
+  res.status(201).json({
+    token: createToken({ userId: user.id }),
+    userId: user.id,
+    username: user.username
+  });
+
 }
