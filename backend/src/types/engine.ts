@@ -18,3 +18,15 @@ export interface EngineResponse {
   data?: unknown;
   error?: string;
 }
+
+export type Side = "buy" | "sell";
+export type OrderType = "market" | "limit";
+
+export interface CreateOrderInput {
+  userId: string;
+  type: OrderType;
+  side: Side;
+  symbol: string;
+  price: number | null;
+  qty: number;
+}

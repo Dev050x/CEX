@@ -5,6 +5,7 @@ import {
   waitForEngineResponse,
 } from "../store/pending-responses.js";
 import type {
+  CreateOrderInput,
   EngineCommandType,
   EngineRequest,
   EngineResponse,

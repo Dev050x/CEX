@@ -11,7 +11,7 @@ export interface RestingOrder {
   orderId: string;
   userId: string;
   side: Side;
-  type: "limit";
+  type: OrderType;
   symbol: string;
   price: number;
   qty: number;
@@ -44,10 +44,27 @@ export interface Fill {
   createdAt: number;
 }
 
+/*
+
+{
+  bids: {
+    "100": RestingRecord,
+    "100.1": RestingRecord
+  },
+  "asks": {
+    "101": RestingRecord,
+    "101.1": RestingRecord,
+  }
+}
+
+*/
+
 export interface OrderBook {
   bids: Map<number, RestingOrder[]>;
   asks: Map<number, RestingOrder[]>;
 }
+
+
 
 export interface CreateOrderInput {
   userId: string;
@@ -69,7 +86,67 @@ export interface DepthResponse {
   asks: DepthLevel[];
 }
 
-export const BALANCES = new Map<string, Record<string, Balance>>();
-export const ORDERBOOKS = new Map<string, OrderBook>();
-export const ORDERS = new Map<string, OrderRecord>();
-export const FILLS: Fill[] = [];
+
+/*
+    {
+        "1": {
+            "sol": {
+                "available": 12,
+                "locked": 15,
+            },
+            "eth": {
+                "available": 1,
+                "locked": 1,
+            }
+        },
+    }
+*/
+
+export const BALANCES = new Map<string, Record<string, Balance>>();       //done
+BALANCES.set("c1ed2d96-5fab-4510-94fc-8dd1d1148508", {
+  "sol": {
+    "available": 100,
+    "locked": 0
+  },
+  "usd": {
+    "available": 100,
+    "locked": 0,
+  }
+})
+
+/*
+    {
+      "sol": OrderBook,
+      "eth": OrderBook
+    }
+*/
+
+export const ORDERBOOKS = new Map<string, OrderBook>();                 //done
+ORDERBOOKS.set("sol", {
+  bids: new Map(),
+  asks: new Map(),
+});
+/*
+    {
+      "1": OrderBook,
+      "2": OrderBook
+    }
+
+*/
+
+export const ORDERS = new Map<string, OrderRecord>();             //done
+
+/*
+
+*/
+
+export const FILLS: Fill[] = [];                //done
+
+
+export const user_counts: number = 0;
+export let order_counts = 0;
+
+export function get_order_count(): string {
+  order_counts += 1;
+  return order_counts.toString();
+}

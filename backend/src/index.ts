@@ -8,8 +8,8 @@ import {
   pingRedis,
 } from "./utils/engine-client.js";
 
-// await connectRedis();
-// void listenForEngineResponses();
+await connectRedis();
+void listenForEngineResponses();
 
 const app = express();
 
