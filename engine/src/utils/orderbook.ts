@@ -310,7 +310,7 @@ export function match_market_order_into_orderbook(asset_orderbook: OrderBook, da
 
     } else {
         const bids = asset_orderbook.bids;
-        console.log("................");
+        
         for (const price of [...bids.keys()].sort((a, b) => b - a)) {
             if (qty === 0) {
                 break;

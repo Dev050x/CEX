@@ -8,28 +8,26 @@ import { user_exists, user_have_enough_asset_balance } from "../utils/user-balan
 export async function create_order(message: EngineRequest): Promise<void> {
     const data = message.payload;
     console.log("this is incoming data...", data);
-
     if (!user_exists(data.userId)) {
         throw new Error("user does not exists");
     }
+    const order_id = get_order_count();
+    ORDERS.set(order_id, {
+        orderId: order_id,
+        userId: data.userId,
+        side: data.side,
+        type: "limit",
+        symbol: data.symbol,
+        price: data.price,
+        qty: data.qty,
+        filledQty: 0,
+        status: "open",
+        fills: [],
+        createdAt: new Date().getTime(),
+    });
 
     if (data.side === "buy") {
         const asset_orderbook = ORDERBOOKS.get(data.symbol)!;
-        const order_id = get_order_count();
-
-        ORDERS.set(order_id, {
-            orderId: order_id,
-            userId: data.userId,
-            side: data.side,
-            type: "limit",
-            symbol: data.symbol,
-            price: data.price,
-            qty: data.qty,
-            filledQty: 0,
-            status: "open",
-            fills: [],
-            createdAt: new Date().getTime(),
-        });
 
         if (data.type === "limit") {
             if (!user_have_enough_asset_balance(data.userId, "usd", data.price! * data.qty)) {
@@ -38,6 +36,10 @@ export async function create_order(message: EngineRequest): Promise<void> {
 
             const remaining_qty = match_limit_order_into_orderbook(asset_orderbook, data, order_id);
             if (remaining_qty === 0) {
+                console.log("orderbook looks like this..", ORDERBOOKS);
+                console.log("BALANCES: ", BALANCES);
+                console.log("FILLS: ", FILLS);
+                console.log("ORDER RECORDS: ", ORDERS);
                 return;
             }
             const status = data.qty === remaining_qty ? "open" : "partially_filled";
@@ -47,6 +49,7 @@ export async function create_order(message: EngineRequest): Promise<void> {
             console.log("orderbook looks like this..", ORDERBOOKS);
             console.log("BALANCES: ", BALANCES);
             console.log("FILLS: ", FILLS);
+            console.log("ORDER RECORDS: ", ORDERS);
 
         }
 
@@ -60,6 +63,7 @@ export async function create_order(message: EngineRequest): Promise<void> {
                 console.log("orderbook looks like this..", ORDERBOOKS);
                 console.log("BALANCES: ", BALANCES);
                 console.log("FILLS: ", FILLS);
+                console.log("ORDER RECORDS: ", ORDERS);
                 return;
             }
             const status = data.qty === remaining_qty ? "open" : "partially_filled";
@@ -69,12 +73,12 @@ export async function create_order(message: EngineRequest): Promise<void> {
             console.log("ORDERBOOKS", ORDERBOOKS);
             console.log("BALANCES: ", BALANCES);
             console.log("FILLS: ", FILLS);
+            console.log("ORDER RECORDS: ", ORDERS);
         }
     }
 
 
     if (data.side === "sell") {
-        const order_id = get_order_count();
         const asset_orderbook = ORDERBOOKS.get(data.symbol)!;
         if (data.type === "limit") {
             if (!user_have_enough_asset_balance(data.userId, data.symbol, data.qty)) {
@@ -82,6 +86,10 @@ export async function create_order(message: EngineRequest): Promise<void> {
             }
             const remaining_qty = match_limit_order_into_orderbook(asset_orderbook, data, order_id);
             if (remaining_qty === 0) {
+                console.log("orderbook looks like this..", ORDERBOOKS);
+                console.log("BALANCES: ", BALANCES);
+                console.log("FILLS: ", FILLS);
+                console.log("ORDER RECORDS: ", ORDERS);
                 return;
             }
             const status = data.qty === remaining_qty ? "open" : "partially_filled";
@@ -91,6 +99,7 @@ export async function create_order(message: EngineRequest): Promise<void> {
             console.log("orderbook looks like this..", ORDERBOOKS);
             console.log("BALANCES: ", BALANCES);
             console.log("FILLS: ", FILLS);
+            console.log("ORDER RECORDS: ", ORDERS);
         }
 
         if (data.type === "market") {
@@ -102,6 +111,7 @@ export async function create_order(message: EngineRequest): Promise<void> {
                 console.log("orderbook looks like this..", ORDERBOOKS);
                 console.log("BALANCES: ", BALANCES);
                 console.log("FILLS: ", FILLS);
+                console.log("ORDER RECORDS: ", ORDERS);
                 return;
             }
             const status = data.qty === remaining_qty ? "open" : "partially_filled";
@@ -111,6 +121,7 @@ export async function create_order(message: EngineRequest): Promise<void> {
             console.log("orderbook looks like this..", ORDERBOOKS);
             console.log("BALANCES: ", BALANCES);
             console.log("FILLS: ", FILLS);
+            console.log("ORDER RECORDS: ", ORDERS);
         }
     }
 
