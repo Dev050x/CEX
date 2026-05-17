@@ -122,7 +122,7 @@ BALANCES.set("61cc60e3-74fa-4f8f-8ffc-542958fdb258", {
     "available": 0,
     "locked": 0,
   }
-})
+});
 
 /*
     {
@@ -159,4 +159,10 @@ export let order_counts = 0;
 export function get_order_count(): string {
   order_counts += 1;
   return order_counts.toString();
+}
+export let fills_counts = 0;
+
+export function get_fills_count(): string {
+  fills_counts += 1;
+  return fills_counts.toString();
 }

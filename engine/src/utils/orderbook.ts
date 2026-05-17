@@ -1,55 +1,49 @@
 import { updateSourceFile } from "typescript";
-import { BALANCES, get_order_count, ORDERBOOKS, type CreateOrderInput, type OrderBook, type RestingOrder } from "../store/exchange-store";
+import { BALANCES, FILLS, get_fills_count, get_order_count, ORDERBOOKS, ORDERS, type CreateOrderInput, type OrderBook, type OrderStatus, type RestingOrder } from "../store/exchange-store";
 import { update_users_available_balance, update_users_lock_balance } from "./user-balance";
 
 
 //place order into orderbook
-export function place_order_into_orderbook(asset_orderbook: OrderBook, data: CreateOrderInput) {
+export function place_order_into_orderbook(asset_orderbook: OrderBook, data: CreateOrderInput, status: OrderStatus, filled_qty: number, order_id: string) {
     if (data.side === "buy") {
-        console.log("buying order...", data.qty);
         asset_orderbook.bids.set(data.price!, [...(asset_orderbook.bids.get(data.price!) ?? []),
         {
-            orderId: get_order_count(),
+            orderId: order_id,
             userId: data.userId,
             side: data.side,
             type: "limit",
             symbol: data.symbol,
             price: data.price!,
             qty: data.qty,
-            filledQty: 0,
-            status: "open",
+            filledQty: filled_qty,
+            status: status,
             createdAt: new Date().getTime(),
         }
         ]);
-
         update_users_lock_balance(data.userId, "usd", true, data.price! * data.qty);
         update_users_available_balance(data.userId, "usd", false, data.price! * data.qty);
-        console.log("orderbook looks like this..", ORDERBOOKS);
-        console.log("user's balance looks like this after placing the order...", BALANCES.get(data.userId))
 
     } else {
         asset_orderbook.asks.set(data.price!, [...(asset_orderbook.asks.get(data.price!) ?? []), {
-            orderId: get_order_count(),
+            orderId: order_id,
             userId: data.userId,
             side: data.side,
             type: data.type,
             symbol: data.symbol,
             price: data.price!,
             qty: data.qty,
-            filledQty: 0,
-            status: "open",
+            filledQty: filled_qty,
+            status: status,
             createdAt: new Date().getTime(),
         }
         ]);
         update_users_lock_balance(data.userId, data.symbol, true, data.qty);
         update_users_available_balance(data.userId, data.symbol, false, data.qty);
-        console.log("orderbook looks like this..", ORDERBOOKS);
-        console.log("user's balance looks like this after placing the order...", BALANCES.get(data.userId))
     }
 }
 
 //match order into orderbook
-export function match_limit_order_into_orderbook(asset_orderbook: OrderBook, data: CreateOrderInput): number {
+export function match_limit_order_into_orderbook(asset_orderbook: OrderBook, data: CreateOrderInput, order_id: string): number {
     if (data.side === "buy") {
         let qty = data.qty;
         const bid_price = data.price!;
@@ -63,25 +57,6 @@ export function match_limit_order_into_orderbook(asset_orderbook: OrderBook, dat
                 for (const order of RestingOrders) {
                     let i: number = 0;
                     if (qty !== 0) {
-                        //if order quantity can fill our entire position then it's okay
-                        if (order.qty > qty) {
-                            order.qty -= qty;
-                            qty = 0;
-
-                            //update person a's balance
-                            update_users_available_balance(data.userId, data.symbol, true, order.qty);
-                            update_users_available_balance(data.userId, "usd", false, order.qty * price);
-
-                            //updaet person b's balance
-                            update_users_lock_balance(order.userId, order.symbol, false, order.qty);
-                            update_users_available_balance(order.userId, "usd", true, order.qty * price);
-                            console.log(`user's a balance after limit buy order get matched ${data.userId} `, BALANCES.get(data.userId!));
-                            console.log(`user's b balance after limit buy order get matched ${order.userId} `, BALANCES.get(data.userId!));
-                            break;
-                        }
-
-                        //takeout entire resting order from the map
-                        RestingOrders.splice(i, 1);
                         //update person a's balance
                         update_users_available_balance(data.userId, data.symbol, true, order.qty);
                         update_users_available_balance(data.userId, "usd", false, order.qty * price);
@@ -89,23 +64,81 @@ export function match_limit_order_into_orderbook(asset_orderbook: OrderBook, dat
                         //updaet person b's balance
                         update_users_lock_balance(order.userId, order.symbol, false, order.qty);
                         update_users_available_balance(order.userId, "usd", true, order.qty * price);
-                        console.log(`user's a balance after limit buy order get matched ${data.userId} `, BALANCES.get(data.userId!));
-                        console.log(`user's b balance after limit buy order get matched ${order.userId} `, BALANCES.get(data.userId!));
-                        qty -= order.qty;
+
+                        if (order.qty > qty) {
+
+                            const fill = {
+                                fillId: get_fills_count(),
+                                symbol: order.symbol,
+                                price: price,
+                                qty: qty,
+                                buyOrderId: order_id,
+                                sellOrderId: order.orderId,
+                                createdAt: new Date().getTime()
+                            };
+                            FILLS.push(fill);
+
+                            const order_record_a = ORDERS.get(order_id)!; //for user'a
+                            order_record_a.filledQty += qty;
+                            order_record_a.fills.push(fill);
+                            order_record_a.status = "filled";
+
+
+                            const order_record_b = ORDERS.get(order.orderId)!;
+                            order_record_b.filledQty += qty;
+                            order_record_b.fills.push(fill);
+                            const status = order.qty === qty ? "filled" : "partially_filled";
+                            order_record_b.status = status;
+
+                            order.filledQty = qty;
+                            order.qty -= qty;
+                            order.status = "partially_filled";
+                            qty = 0;
+                            break;
+
+                        } else {
+                            const fill = {
+                                fillId: get_fills_count(),
+                                symbol: order.symbol,
+                                price: price,
+                                qty: qty,
+                                buyOrderId: order_id,
+                                sellOrderId: order.orderId,
+                                createdAt: new Date().getTime()
+                            };
+                            FILLS.push(fill);
+
+                            const order_record_a = ORDERS.get(order_id)!; //for users'a
+                            order_record_a.filledQty += order.qty;
+                            const status = order.qty === data.qty ? "filled" : "partially_filled";
+                            order_record_a.status = status;
+
+                            const order_record_b = ORDERS.get(order.orderId)!;
+                            order_record_b.filledQty += qty;
+                            order_record_b.fills.push(fill);
+                            order_record_b.status = "filled";
+
+                            RestingOrders.splice(i, 1);
+                            qty -= order.qty;
+                        }
+
                     } else {
                         break;
                     }
                     i++;
                 }
             }
+
+            if (asset_orderbook.asks.get(price)?.length === 0) {
+                asset_orderbook.asks.delete(price);
+            }
         };
+
         return qty;
     }
     else {
-        let qty = data.qty;     //sol selling
+        let qty = data.qty;
         const ask_price = data.price!;
-
-
         for (const [price, RestingOrders] of asset_orderbook.bids) {
             if (qty === 0) {
                 break;
@@ -114,90 +147,164 @@ export function match_limit_order_into_orderbook(asset_orderbook: OrderBook, dat
                 for (const order of RestingOrders) {
                     let i: number = 0;
                     if (qty !== 0) {
-                        //if order quantity can fill our entire position then it's okay
-                        if (order.qty > qty) {
-                            order.qty -= qty;
-                            qty = 0;
-                            //update person a's balance(sellers)
-                            update_users_available_balance(data.userId, data.symbol, false, order.qty);
-                            update_users_available_balance(data.userId, "usd", true, order.qty * price);
-
-                            //updaet person b's balance(buyers)
-                            update_users_lock_balance(order.userId, order.symbol, false, order.qty);
-                            update_users_available_balance(order.userId, "usd", false, order.qty * price);
-                            console.log(`user's a balance after limit buy order get matched ${data.userId} `, BALANCES.get(data.userId!));
-                            console.log(`user's b balance after limit buy order get matched ${order.userId} `, BALANCES.get(data.userId!));
-                            break;
-                        }
-
-                        //takeout entire resting order from the map
-                        RestingOrders.splice(i, 1);
-                        //update person a's balance(sellers)
                         update_users_available_balance(data.userId, data.symbol, false, order.qty);
                         update_users_available_balance(data.userId, "usd", true, order.qty * price);
 
-                        //updaet person b's balance(buyers)
                         update_users_lock_balance(order.userId, order.symbol, false, order.qty);
                         update_users_available_balance(order.userId, "usd", false, order.qty * price);
-                        console.log(`user's a balance after limit buy order get matched ${data.userId} `, BALANCES.get(data.userId!));
-                        console.log(`user's b balance after limit buy order get matched ${order.userId} `, BALANCES.get(data.userId!));
-                        qty -= order.qty;
+                        if (order.qty > qty) {
+                            const fill = {
+                                fillId: get_fills_count(),
+                                symbol: order.symbol,
+                                price: price,
+                                qty: qty,
+                                buyOrderId: order.orderId,
+                                sellOrderId: order_id,
+                                createdAt: new Date().getTime()
+                            };
+                            FILLS.push(fill);
+
+                            const order_record_a = ORDERS.get(order_id)!;
+                            order_record_a.filledQty += qty;
+                            order_record_a.status = "filled";
+                            order_record_a.fills.push(fill);
+
+                            const order_record_b = ORDERS.get(order.orderId)!;
+                            order_record_b.filledQty += qty;
+                            order_record_b.fills.push(fill);
+                            const status = order.qty === qty ? "filled" : "partially_filled";
+                            order_record_b.status = status;
+
+                            order.qty -= qty;
+                            order.filledQty = qty;
+                            order.status = "partially_filled";
+                            qty = 0;
+                            break;
+
+                        }
+                        else {
+                            const fill = {
+                                fillId: get_fills_count(),
+                                symbol: order.symbol,
+                                price: price,
+                                qty: qty,
+                                buyOrderId: order.orderId,
+                                sellOrderId: order_id,
+                                createdAt: new Date().getTime()
+                            };
+                            FILLS.push(fill);
+
+                            const order_record_a = ORDERS.get(order_id)!; //for users'a
+                            order_record_a.filledQty += order.qty;
+                            const status = order.qty === data.qty ? "filled" : "partially_filled";
+                            order_record_a.status = status;
+
+                            const order_record_b = ORDERS.get(order.orderId)!;
+                            order_record_b.filledQty += qty;
+                            order_record_b.fills.push(fill);
+                            order_record_b.status = "filled";
+
+                            RestingOrders.splice(i, 1);
+                            qty -= order.qty;
+
+                        }
+
                     } else {
                         break;
                     }
                     i++;
                 }
             }
+
+            if (asset_orderbook.bids.get(price)?.length === 0) {
+                asset_orderbook.bids.delete(price);
+            }
         }
         return qty;
     }
 }
 
-export function match_market_order_into_orderbook(asset_orderbook: OrderBook, data: CreateOrderInput): number {
+export function match_market_order_into_orderbook(asset_orderbook: OrderBook, data: CreateOrderInput, order_id: string): number {
     let qty = data.qty;
     if (data.side === "buy") {
         const asks = asset_orderbook.asks;
-
         for (const price of [...asks.keys()].sort((a, b) => a - b)) {
             if (qty === 0) {
                 break;
             }
-            for (const resting_record of asks.get(price)!) {
+            for (const order of asks.get(price)!) {
                 if (qty === 0) {
                     break;
                 }
                 let i: number = 0;
-                if (resting_record.qty > qty) {  //partially fill orderbook order
-                    //update record
-                    resting_record.qty -= qty;
-                    qty = 0;
-                    //increase user a's asset balance(available)
-                    //decrease user a's usd balance(available)  
-                    update_users_available_balance(data.userId, data.symbol, true, data.qty);
-                    update_users_available_balance(data.userId, "usd", false, data.qty * resting_record.price);
 
-                    //decrease user b's asset balance(locked)
-                    //increse user b's usd balance(availble)
-                    update_users_lock_balance(resting_record.userId, resting_record.symbol, false, resting_record.qty);
-                    update_users_available_balance(resting_record.userId, "usd", true, resting_record.qty * resting_record.price);
-                } else {         //completely fill orderbook order and remove it
-                    //take out this resting order from the map
+                update_users_available_balance(data.userId, data.symbol, true, data.qty);
+                update_users_available_balance(data.userId, "usd", false, data.qty * order.price);
+                update_users_lock_balance(order.userId, order.symbol, false, order.qty);
+                update_users_available_balance(order.userId, "usd", true, order.qty * order.price);
+
+                if (order.qty > qty) {
+                    const fill = {
+                        fillId: get_fills_count(),
+                        symbol: order.symbol,
+                        price: price,
+                        qty: qty,
+                        buyOrderId: order_id,
+                        sellOrderId: order.orderId,
+                        createdAt: new Date().getTime(),
+                    };
+                    FILLS.push(fill);
+                    const order_record_a = ORDERS.get(order_id)!; //for user'a
+                    order_record_a.filledQty += qty;
+                    order_record_a.fills.push(fill);
+                    order_record_a.status = "filled";
+
+
+                    const order_record_b = ORDERS.get(order.orderId)!;
+                    order_record_b.filledQty += qty;
+                    order_record_b.fills.push(fill);
+                    const status = order.qty === qty ? "filled" : "partially_filled";
+                    order_record_b.status = status;
+
+
+                    order.qty -= qty;
+                    order.filledQty = qty;
+                    order.status = "partially_filled";
+                    qty = 0;
+
+
+
+                } else {
+                    const fill = {
+                        fillId: get_fills_count(),
+                        symbol: order.symbol,
+                        price: price,
+                        qty: qty,
+                        buyOrderId: order_id,
+                        sellOrderId: order.orderId,
+                        createdAt: new Date().getTime(),
+                    };
+                    FILLS.push(fill);
+
+                    const order_record_a = ORDERS.get(order_id)!; //for users'a
+                    order_record_a.filledQty += order.qty;
+                    const status = order.qty === data.qty ? "filled" : "partially_filled";
+                    order_record_a.status = status;
+
+                    const order_record_b = ORDERS.get(order.orderId)!;
+                    order_record_b.filledQty += qty;
+                    order_record_b.fills.push(fill);
+                    order_record_b.status = "filled";
+
                     const resting_records_for_this_price = asks.get(price)!;
                     resting_records_for_this_price.splice(i, 1);
-                    qty -= resting_record.qty;
-
-                    //increase user a's asset balance(available)
-                    //decrease user a's usd balance(available)  
-                    update_users_available_balance(data.userId, data.symbol, true, data.qty);
-                    update_users_available_balance(data.userId, "usd", false, data.qty * resting_record.price);
-
-                    //decrease user b's asset balance(locked)
-                    //increse user b's usd balance(availble)
-                    update_users_lock_balance(resting_record.userId, resting_record.symbol, false, resting_record.qty);
-                    update_users_available_balance(resting_record.userId, "usd", true, resting_record.qty * resting_record.price);
+                    qty -= order.qty;
 
                 }
                 i++;
+            }
+            if (asset_orderbook.asks.get(price)?.length === 0) {
+                asset_orderbook.asks.delete(price);
             }
         }
 
@@ -205,56 +312,88 @@ export function match_market_order_into_orderbook(asset_orderbook: OrderBook, da
         const bids = asset_orderbook.bids;
         console.log("................");
         for (const price of [...bids.keys()].sort((a, b) => b - a)) {
-            console.log("hello from the outer loop");
-            console.log("price....", price);
             if (qty === 0) {
                 break;
             }
 
             for (const order of bids.get(price)!) {
-                console.log("hello from the loop");
                 if (qty === 0) {
                     break;
                 }
                 let i: number = 0;
-                if (order.qty > qty) {  //can fill completely-> need to update orderbook
-                    order.qty -= qty;
-                    qty = 0;
-
-                    //update person a's balance(sellers)
-                    update_users_available_balance(data.userId, data.symbol, false, order.qty);
-                    update_users_available_balance(data.userId, "usd", true, order.qty * price);
-
-                    //updaet person b's balance(buyers)
-                    update_users_lock_balance(order.userId, "usd", false, order.qty);
-                    update_users_available_balance(order.userId, order.symbol, true, order.qty * price);
-                    console.log(`user's a balance after limit buy order get matched ${data.userId} `, BALANCES.get(data.userId!));
-                    console.log(`user's b balance after limit buy order get matched ${order.userId} `, BALANCES.get(data.userId!));
-                    break;
-                }
-
-                qty -= order.qty;
-                //takeout entire resting order from the map
-                const RestingOrders = bids.get(price)!
-                RestingOrders.splice(i, 1);
-
                 //update person a's balance(sellers)
                 update_users_available_balance(data.userId, data.symbol, false, order.qty);
                 update_users_available_balance(data.userId, "usd", true, order.qty * price);
 
                 //updaet person b's balance(buyers)
-                update_users_lock_balance(order.userId, "usd", false, order.qty*order.price!);
-                console.log("after decreasing the lock...", order.userId, BALANCES.get(order.userId) );
+                update_users_lock_balance(order.userId, "usd", false, order.qty * price);
                 update_users_available_balance(order.userId, order.symbol, true, order.qty);
-                console.log("after increasing the asset balance", order.userId, BALANCES.get(order.userId) );
-                console.log(`user's a balance after limit buy order get matched ${data.userId} `, BALANCES.get(data.userId!));
-                console.log(`user's b balance after limit buy order get matched ${order.userId} `, BALANCES.get(order.userId!));
+
+                if (order.qty > qty) {
+                    const fill = {
+                        fillId: get_fills_count(),
+                        symbol: order.symbol,
+                        price: price,
+                        qty: qty,
+                        buyOrderId: order.orderId,
+                        sellOrderId: order_id,
+                        createdAt: new Date().getTime(),
+                    };
+                    FILLS.push(fill);
+
+                    const order_record_a = ORDERS.get(order_id)!;
+                    order_record_a.filledQty += qty;
+                    order_record_a.status = "filled";
+                    order_record_a.fills.push(fill);
+
+                    const order_record_b = ORDERS.get(order.orderId)!;
+                    order_record_b.filledQty += qty;
+                    order_record_b.fills.push(fill);
+                    const status = order.qty === qty ? "filled" : "partially_filled";
+                    order_record_b.status = status;
+
+                    order.qty -= qty;
+                    order.filledQty = qty;
+                    order.status = "partially_filled";
+                    qty = 0;
+                    break;
+
+                } else {
+                    const fill = {
+                        fillId: get_fills_count(),
+                        symbol: order.symbol,
+                        price: price,
+                        qty: qty,
+                        buyOrderId: order.orderId,
+                        sellOrderId: order_id,
+                        createdAt: new Date().getTime(),
+                    };
+                    FILLS.push(fill);
+
+                    const order_record_a = ORDERS.get(order_id)!; //for users'a
+                    order_record_a.filledQty += order.qty;
+                    const status = order.qty === data.qty ? "filled" : "partially_filled";
+                    order_record_a.status = status;
+
+                    const order_record_b = ORDERS.get(order.orderId)!;
+                    order_record_b.filledQty += qty;
+                    order_record_b.fills.push(fill);
+                    order_record_b.status = "filled";
+
+                    qty -= order.qty;
+                    const RestingOrders = bids.get(price)!
+                    RestingOrders.splice(i, 1);
+
+                }
                 i++;
             }
-            console.log("cl")
+
+            if (asset_orderbook.bids.get(price)?.length === 0) {
+                asset_orderbook.bids.delete(price);
+            }
+
         }
     }
-    console.log("the qty is.................. for this asset ", qty, asset_orderbook);
     return qty;
 
 }

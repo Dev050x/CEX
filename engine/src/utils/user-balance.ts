@@ -18,7 +18,6 @@ export function update_users_lock_balance(userId: string, asset: string, increas
         return;
     }
     users_asset_balance.locked -= qty;
-    console.log(`for userid ${userId}`, users_asset_balance ,asset);
 }
 
 export function user_have_enough_asset_balance(userId: string, asset: string, need: number): boolean {
