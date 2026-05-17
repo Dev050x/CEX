@@ -1,12 +1,11 @@
 import { BALANCES, FILLS, get_order_count, ORDERBOOKS, ORDERS, type OrderRecord } from "../store/exchange-store";
-import type { EngineRequest } from "../types/engine";
+import type { CreateOrderInput, EngineRequest } from "../types/engine";
 import { match_limit_order_into_orderbook, match_market_order_into_orderbook, place_order_into_orderbook } from "../utils/orderbook";
 import { get_ask_price } from "../utils/price";
 import { user_exists, user_have_enough_asset_balance } from "../utils/user-balance";
 
 //we just need to create a new order here that's it
-export async function create_order(message: EngineRequest): Promise<OrderRecord> {
-    const data = message.payload;
+export function create_order(data: CreateOrderInput): OrderRecord {
     console.log("this is incoming data...", data);
     if (!user_exists(data.userId)) {
         throw new Error("user does not exists");

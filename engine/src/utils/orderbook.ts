@@ -1,6 +1,7 @@
 import { updateSourceFile } from "typescript";
-import { BALANCES, FILLS, get_fills_count, get_order_count, ORDERBOOKS, ORDERS, type CreateOrderInput, type OrderBook, type OrderStatus, type RestingOrder } from "../store/exchange-store";
+import { BALANCES, FILLS, get_fills_count, get_order_count, ORDERBOOKS, ORDERS, type OrderBook, type OrderStatus, type RestingOrder } from "../store/exchange-store";
 import { update_users_available_balance, update_users_lock_balance } from "./user-balance";
+import type { CreateOrderInput } from "../types/engine";
 
 
 //place order into orderbook
@@ -48,13 +49,12 @@ export function match_limit_order_into_orderbook(asset_orderbook: OrderBook, dat
         let qty = data.qty;
         const bid_price = data.price!;
         // const available_matches:[number, RestingOrder][] = [];
-
-        for (const [price, RestingOrders] of asset_orderbook.asks) {
+        for (const price of [...asset_orderbook.asks.keys()].sort((a, b) => a - b)) {
             if (qty === 0) {
                 break;
             }
             if (price <= bid_price) {
-                for (const order of RestingOrders) {
+                for (const order of asset_orderbook.asks.get(price)!) {
                     let i: number = 0;
                     if (qty !== 0) {
                         //update person a's balance
@@ -120,7 +120,7 @@ export function match_limit_order_into_orderbook(asset_orderbook: OrderBook, dat
                             order_record_b.status = "filled";
                             order_record_b.fills.push(fill);
 
-                            RestingOrders.splice(i, 1);
+                            asset_orderbook.asks.get(price)!.splice(i, 1);
                             qty -= order.qty;
                         }
 
@@ -141,12 +141,12 @@ export function match_limit_order_into_orderbook(asset_orderbook: OrderBook, dat
     else {
         let qty = data.qty;
         const ask_price = data.price!;
-        for (const [price, RestingOrders] of asset_orderbook.bids) {
+        for (const price of [...asset_orderbook.bids.keys()].sort((a, b) => b - a)) {
             if (qty === 0) {
                 break;
             }
             if (price >= ask_price) {
-                for (const order of RestingOrders) {
+                for (const order of asset_orderbook.bids.get(price)!) {
                     let i: number = 0;
                     if (qty !== 0) {
                         update_users_available_balance(data.userId, data.symbol, false, order.qty);
@@ -206,7 +206,7 @@ export function match_limit_order_into_orderbook(asset_orderbook: OrderBook, dat
                             order_record_b.fills.push(fill);
                             order_record_b.status = "filled";
 
-                            RestingOrders.splice(i, 1);
+                            asset_orderbook.bids.get(price)!.splice(i,1);
                             qty -= order.qty;
 
                         }
@@ -312,7 +312,7 @@ export function match_market_order_into_orderbook(asset_orderbook: OrderBook, da
 
     } else {
         const bids = asset_orderbook.bids;
-        
+
         for (const price of [...bids.keys()].sort((a, b) => b - a)) {
             if (qty === 0) {
                 break;

@@ -65,16 +65,6 @@ export interface OrderBook {
 }
 
 
-
-export interface CreateOrderInput {
-  userId: string;
-  type: OrderType;
-  side: Side;
-  symbol: string;
-  price: number | null;
-  qty: number;
-}
-
 export interface DepthLevel {
   price: number;
   qty: number;

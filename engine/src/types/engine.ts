@@ -1,4 +1,4 @@
-import type { CreateOrderInput } from "../store/exchange-store";
+import type { OrderType, Side } from "../store/exchange-store";
 
 export type EngineCommandType =
   | "create_order"
@@ -7,11 +7,24 @@ export type EngineCommandType =
   | "get_order"
   | "cancel_order";
 
+export interface CreateOrderInput {
+  userId: string;
+  type: OrderType;
+  side: Side;
+  symbol: string;
+  price: number | null;
+  qty: number;
+}
+
+export interface GetDepthInput {
+  symbol: string
+}
+
 export interface EngineRequest {
   correlationId: string;
   responseQueue: string;
   type: EngineCommandType;
-  payload: CreateOrderInput;
+  payload: CreateOrderInput | GetDepthInput;
 }
 
 export interface EngineResponse {

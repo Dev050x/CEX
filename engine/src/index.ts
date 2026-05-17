@@ -1,8 +1,10 @@
 import "dotenv/config";
 import { createClient } from "redis";
 import { env } from "./utils/env.js";
-import type { EngineRequest, EngineResponse } from "./types/engine.js";
+import type { CreateOrderInput, EngineRequest, EngineResponse, GetDepthInput } from "./types/engine.js";
 import { create_order } from "./controllers/create-order.js";
+import { get_depth } from "./controllers/get-depth.js";
+import { ORDERBOOKS } from "./store/exchange-store.js";
 
 const brokerClient = createClient({ url: env.redisUrl }).on("error", (error) => {
   console.error("Redis broker client error", error);
@@ -36,8 +38,10 @@ async function handleEngineRequest(message: EngineRequest): Promise<any> {
    */
 
   if (message.type === "create_order") {
-    const order_record = await create_order(message);
-    const average_price = order_record.fills.reduce((sum,fill) => fill.price + sum , 0) / order_record.fills.length;
+
+    const payload = message.payload as CreateOrderInput;
+    const order_record = create_order(payload);
+    const average_price = order_record.fills.reduce((sum, fill) => fill.price + sum, 0) / order_record.fills.length;
     console.log("order record: ", order_record);
     return {
       "status": order_record.status,
@@ -45,7 +49,11 @@ async function handleEngineRequest(message: EngineRequest): Promise<any> {
       "averagePrice": average_price,
       "fills": order_record.fills,
     }
+
   } else if (message.type === "get_depth") {
+    
+    const payload = message.payload as GetDepthInput;
+    return get_depth(ORDERBOOKS.get(payload.symbol)!, payload.symbol);
 
   } else if (message.type === "cancel_order") {
 
