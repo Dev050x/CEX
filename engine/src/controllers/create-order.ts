@@ -1,11 +1,11 @@
-import { BALANCES, FILLS, get_order_count, ORDERBOOKS, ORDERS } from "../store/exchange-store";
+import { BALANCES, FILLS, get_order_count, ORDERBOOKS, ORDERS, type OrderRecord } from "../store/exchange-store";
 import type { EngineRequest } from "../types/engine";
 import { match_limit_order_into_orderbook, match_market_order_into_orderbook, place_order_into_orderbook } from "../utils/orderbook";
 import { get_ask_price } from "../utils/price";
 import { user_exists, user_have_enough_asset_balance } from "../utils/user-balance";
 
 //we just need to create a new order here that's it
-export async function create_order(message: EngineRequest): Promise<void> {
+export async function create_order(message: EngineRequest): Promise<OrderRecord> {
     const data = message.payload;
     console.log("this is incoming data...", data);
     if (!user_exists(data.userId)) {
@@ -40,7 +40,7 @@ export async function create_order(message: EngineRequest): Promise<void> {
                 console.log("BALANCES: ", BALANCES);
                 console.log("FILLS: ", FILLS);
                 console.log("ORDER RECORDS: ", ORDERS);
-                return;
+                return ORDERS.get(order_id)!;
             }
             const status = data.qty === remaining_qty ? "open" : "partially_filled";
             const filled_qty = status === "partially_filled" ? data.qty - remaining_qty : 0;
@@ -50,7 +50,7 @@ export async function create_order(message: EngineRequest): Promise<void> {
             console.log("BALANCES: ", BALANCES);
             console.log("FILLS: ", FILLS);
             console.log("ORDER RECORDS: ", ORDERS);
-
+            return ORDERS.get(order_id)!;
         }
 
         if (data.type === "market") {
@@ -64,7 +64,7 @@ export async function create_order(message: EngineRequest): Promise<void> {
                 console.log("BALANCES: ", BALANCES);
                 console.log("FILLS: ", FILLS);
                 console.log("ORDER RECORDS: ", ORDERS);
-                return;
+                return ORDERS.get(order_id)!;
             }
             const status = data.qty === remaining_qty ? "open" : "partially_filled";
             const filled_qty = status === "partially_filled" ? data.qty - remaining_qty : 0;
@@ -74,6 +74,7 @@ export async function create_order(message: EngineRequest): Promise<void> {
             console.log("BALANCES: ", BALANCES);
             console.log("FILLS: ", FILLS);
             console.log("ORDER RECORDS: ", ORDERS);
+            return ORDERS.get(order_id)!;
         }
     }
 
@@ -90,7 +91,7 @@ export async function create_order(message: EngineRequest): Promise<void> {
                 console.log("BALANCES: ", BALANCES);
                 console.log("FILLS: ", FILLS);
                 console.log("ORDER RECORDS: ", ORDERS);
-                return;
+                return ORDERS.get(order_id)!;
             }
             const status = data.qty === remaining_qty ? "open" : "partially_filled";
             const filled_qty = status === "partially_filled" ? data.qty - remaining_qty : 0;
@@ -100,6 +101,7 @@ export async function create_order(message: EngineRequest): Promise<void> {
             console.log("BALANCES: ", BALANCES);
             console.log("FILLS: ", FILLS);
             console.log("ORDER RECORDS: ", ORDERS);
+            return ORDERS.get(order_id)!;
         }
 
         if (data.type === "market") {
@@ -112,7 +114,7 @@ export async function create_order(message: EngineRequest): Promise<void> {
                 console.log("BALANCES: ", BALANCES);
                 console.log("FILLS: ", FILLS);
                 console.log("ORDER RECORDS: ", ORDERS);
-                return;
+                return ORDERS.get(order_id)!;
             }
             const status = data.qty === remaining_qty ? "open" : "partially_filled";
             const filled_qty = status === "partially_filled" ? data.qty - remaining_qty : 0;
@@ -122,7 +124,9 @@ export async function create_order(message: EngineRequest): Promise<void> {
             console.log("BALANCES: ", BALANCES);
             console.log("FILLS: ", FILLS);
             console.log("ORDER RECORDS: ", ORDERS);
+            return ORDERS.get(order_id)!;
         }
     }
+    return ORDERS.get(order_id)!;
 
 }

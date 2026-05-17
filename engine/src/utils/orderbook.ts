@@ -112,11 +112,13 @@ export function match_limit_order_into_orderbook(asset_orderbook: OrderBook, dat
                             order_record_a.filledQty += order.qty;
                             const status = order.qty === data.qty ? "filled" : "partially_filled";
                             order_record_a.status = status;
+                            order_record_a.fills.push(fill);
 
                             const order_record_b = ORDERS.get(order.orderId)!;
                             order_record_b.filledQty += qty;
                             order_record_b.fills.push(fill);
                             order_record_b.status = "filled";
+                            order_record_b.fills.push(fill);
 
                             RestingOrders.splice(i, 1);
                             qty -= order.qty;
@@ -374,11 +376,13 @@ export function match_market_order_into_orderbook(asset_orderbook: OrderBook, da
                     order_record_a.filledQty += order.qty;
                     const status = order.qty === data.qty ? "filled" : "partially_filled";
                     order_record_a.status = status;
+                    order_record_a.fills.push(fill);
 
                     const order_record_b = ORDERS.get(order.orderId)!;
                     order_record_b.filledQty += qty;
                     order_record_b.fills.push(fill);
                     order_record_b.status = "filled";
+                    order_record_b.fills.push(fill);
 
                     qty -= order.qty;
                     const RestingOrders = bids.get(price)!

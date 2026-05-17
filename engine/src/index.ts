@@ -2,7 +2,7 @@ import "dotenv/config";
 import { createClient } from "redis";
 import { env } from "./utils/env.js";
 import type { EngineRequest, EngineResponse } from "./types/engine.js";
-import { create_order } from "./handlers/create-order.js";
+import { create_order } from "./controllers/create-order.js";
 
 const brokerClient = createClient({ url: env.redisUrl }).on("error", (error) => {
   console.error("Redis broker client error", error);
@@ -36,7 +36,15 @@ async function handleEngineRequest(message: EngineRequest): Promise<any> {
    */
 
   if (message.type === "create_order") {
-    await create_order(message);
+    const order_record = await create_order(message);
+    const average_price = order_record.fills.reduce((sum,fill) => fill.price + sum , 0) / order_record.fills.length;
+    console.log("order record: ", order_record);
+    return {
+      "status": order_record.status,
+      "filledQty": order_record.filledQty,
+      "averagePrice": average_price,
+      "fills": order_record.fills,
+    }
   } else if (message.type === "get_depth") {
 
   } else if (message.type === "cancel_order") {
