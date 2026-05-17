@@ -1,9 +1,9 @@
 import { BALANCES } from "../store/exchange-store";
 
-export function update_user_balance(userId: string, asset: string, needTolock: boolean, qty: number) {
+export function lock_unlock_user_balance(userId: string, asset: string, lock: boolean, qty: number) {
     const user_balances = BALANCES.get(userId)!;
     const user_asset_balance = user_balances[asset]!;
-    if(needTolock) {
+    if(lock) {
         user_asset_balance.available -= qty;
         user_asset_balance.locked += qty;
         return;
@@ -11,6 +11,24 @@ export function update_user_balance(userId: string, asset: string, needTolock: b
     user_asset_balance.available += qty;
     user_asset_balance.locked -= qty;
 }   
+
+export function update_users_available_balance(userId: string, asset: string, increase: boolean, qty: number) {
+    const user_assets_balance = BALANCES.get(userId)![asset]!;
+    if(increase) {
+        user_assets_balance.available += qty;
+        return;
+    }
+    user_assets_balance.available -= qty;
+}
+
+export function update_users_lock_balance(userId: string, asset: string, increase: boolean, qty: number) {
+    const users_asset_balance = BALANCES.get(userId)![asset]!;
+    if(increase) {
+        users_asset_balance.locked += qty;
+        return;
+    }
+    users_asset_balance.locked -= qty;
+}
 
 export function user_have_enough_asset_balance(userId: string, asset: string, need: number): boolean {
     const user_balances = BALANCES.get(userId)!;

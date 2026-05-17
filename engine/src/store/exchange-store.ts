@@ -105,11 +105,21 @@ export interface DepthResponse {
 export const BALANCES = new Map<string, Record<string, Balance>>();       //done
 BALANCES.set("c1ed2d96-5fab-4510-94fc-8dd1d1148508", {
   "sol": {
-    "available": 100,
+    "available": 0,
     "locked": 0
   },
   "usd": {
-    "available": 100,
+    "available": 1000,
+    "locked": 0,
+  }
+});
+BALANCES.set("61cc60e3-74fa-4f8f-8ffc-542958fdb258", {
+   "sol": {
+    "available": 10,
+    "locked": 0
+  },
+  "usd": {
+    "available": 0,
     "locked": 0,
   }
 })
