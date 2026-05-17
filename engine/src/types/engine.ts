@@ -24,11 +24,16 @@ export interface GetUserBalance{
   userId: string;
 }
 
+export interface GetOrderInput{
+  userId: string,
+  orderId: string;
+}
+
 export interface EngineRequest {
   correlationId: string;
   responseQueue: string;
   type: EngineCommandType;
-  payload: CreateOrderInput | GetDepthInput;
+  payload: CreateOrderInput | GetDepthInput | GetOrderInput;
 }
 
 export interface EngineResponse {
