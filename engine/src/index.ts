@@ -1,10 +1,11 @@
 import "dotenv/config";
 import { createClient } from "redis";
 import { env } from "./utils/env.js";
-import type { CreateOrderInput, EngineRequest, EngineResponse, GetDepthInput } from "./types/engine.js";
+import type { CreateOrderInput, EngineRequest, EngineResponse, GetDepthInput, GetUserBalance } from "./types/engine.js";
 import { create_order } from "./controllers/create-order.js";
 import { get_depth } from "./controllers/get-depth.js";
 import { ORDERBOOKS } from "./store/exchange-store.js";
+import { user_balance } from "./utils/user-balance.js";
 
 const brokerClient = createClient({ url: env.redisUrl }).on("error", (error) => {
   console.error("Redis broker client error", error);
@@ -51,7 +52,7 @@ async function handleEngineRequest(message: EngineRequest): Promise<any> {
     }
 
   } else if (message.type === "get_depth") {
-    
+
     const payload = message.payload as GetDepthInput;
     return get_depth(ORDERBOOKS.get(payload.symbol)!, payload.symbol);
 
@@ -60,7 +61,8 @@ async function handleEngineRequest(message: EngineRequest): Promise<any> {
   } else if (message.type === "get_order") {
 
   } else if (message.type === "get_user_balance") {
-
+    const payload = message.payload as GetUserBalance;
+    return user_balance(payload.userId);
   }
 }
 

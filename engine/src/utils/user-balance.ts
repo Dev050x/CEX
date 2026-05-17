@@ -1,6 +1,8 @@
 import { BALANCES } from "../store/exchange-store";
 
- 
+export function user_balance(userId: string) {
+    return BALANCES.get(userId);
+}
 
 export function update_users_available_balance(userId: string, asset: string, increase: boolean, qty: number) {
     const user_assets_balance = BALANCES.get(userId)![asset]!;

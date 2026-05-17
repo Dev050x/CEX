@@ -20,6 +20,10 @@ export interface GetDepthInput {
   symbol: string
 }
 
+export interface GetUserBalance{
+  userId: string;
+}
+
 export interface EngineRequest {
   correlationId: string;
   responseQueue: string;
