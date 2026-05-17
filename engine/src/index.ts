@@ -23,26 +23,12 @@ async function sendResponse(responseQueue: string, response: EngineResponse): Pr
 }
 
 async function handleEngineRequest(message: EngineRequest): Promise<any> {
-  /*
-   * TODO(student):
-   * 1. Check _message.type.
-   * 2. Read _message.payload.
-   * 3. Call your order book / balance / order logic.
-   * 4. Return the data that should go back to the backend.
-   *
-   * Required message types:
-   * - create_order
-   * - get_depth
-   * - get_user_balance
-   * - get_order
-   * - cancel_order
-   */
-
   if (message.type === "create_order") {
 
     const payload = message.payload as CreateOrderInput;
     const order_record = create_order(payload);
-    const average_price = order_record.fills.reduce((sum, fill) => fill.price + sum, 0) / order_record.fills.length;
+    const fills_qty = order_record.fills.reduce((sum, fill) => fill.qty + sum , 0);
+    const average_price = order_record.fills.reduce((sum, fill) => fill.price * fill.qty + sum, 0) / fills_qty;
     console.log("order record: ", order_record);
     return {
       "status": order_record.status,

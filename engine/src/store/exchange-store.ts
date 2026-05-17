@@ -99,13 +99,13 @@ BALANCES.set("c1ed2d96-5fab-4510-94fc-8dd1d1148508", {
     "locked": 0
   },
   "usd": {
-    "available": 1000,
+    "available": 10000,
     "locked": 0,
   }
 });
 BALANCES.set("61cc60e3-74fa-4f8f-8ffc-542958fdb258", {
    "sol": {
-    "available": 10,
+    "available": 100,
     "locked": 0
   },
   "usd": {

@@ -71,7 +71,7 @@ export function match_limit_order_into_orderbook(asset_orderbook: OrderBook, dat
                                 fillId: get_fills_count(),
                                 symbol: order.symbol,
                                 price: price,
-                                qty: qty,
+                                qty: order.qty,
                                 buyOrderId: order_id,
                                 sellOrderId: order.orderId,
                                 createdAt: new Date().getTime()
@@ -101,7 +101,7 @@ export function match_limit_order_into_orderbook(asset_orderbook: OrderBook, dat
                                 fillId: get_fills_count(),
                                 symbol: order.symbol,
                                 price: price,
-                                qty: qty,
+                                qty: order.qty,
                                 buyOrderId: order_id,
                                 sellOrderId: order.orderId,
                                 createdAt: new Date().getTime()
@@ -110,7 +110,7 @@ export function match_limit_order_into_orderbook(asset_orderbook: OrderBook, dat
 
                             const order_record_a = ORDERS.get(order_id)!; //for users'a
                             order_record_a.filledQty += order.qty;
-                            const status = order.qty === data.qty ? "filled" : "partially_filled";
+                            const status = order.qty === qty ? "filled" : "partially_filled";
                             order_record_a.status = status;
                             order_record_a.fills.push(fill);
 
@@ -152,8 +152,8 @@ export function match_limit_order_into_orderbook(asset_orderbook: OrderBook, dat
                         update_users_available_balance(data.userId, data.symbol, false, order.qty);
                         update_users_available_balance(data.userId, "usd", true, order.qty * price);
 
-                        update_users_lock_balance(order.userId, order.symbol, false, order.qty);
-                        update_users_available_balance(order.userId, "usd", false, order.qty * price);
+                        update_users_available_balance(order.userId, order.symbol, true, order.qty);
+                        update_users_lock_balance(order.userId, "usd", false, order.qty * price);
                         if (order.qty > qty) {
                             const fill = {
                                 fillId: get_fills_count(),
@@ -199,6 +199,7 @@ export function match_limit_order_into_orderbook(asset_orderbook: OrderBook, dat
                             const order_record_a = ORDERS.get(order_id)!; //for users'a
                             order_record_a.filledQty += order.qty;
                             const status = order.qty === data.qty ? "filled" : "partially_filled";
+                            order_record_a.fills.push(fill);
                             order_record_a.status = status;
 
                             const order_record_b = ORDERS.get(order.orderId)!;
@@ -275,7 +276,6 @@ export function match_market_order_into_orderbook(asset_orderbook: OrderBook, da
                     qty = 0;
 
 
-
                 } else {
                     const fill = {
                         fillId: get_fills_count(),
@@ -292,6 +292,7 @@ export function match_market_order_into_orderbook(asset_orderbook: OrderBook, da
                     order_record_a.filledQty += order.qty;
                     const status = order.qty === data.qty ? "filled" : "partially_filled";
                     order_record_a.status = status;
+                    order_record_a.fills.push(fill);
 
                     const order_record_b = ORDERS.get(order.orderId)!;
                     order_record_b.filledQty += qty;
